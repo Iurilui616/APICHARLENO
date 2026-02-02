@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:18.1-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: example_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U example_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: python:3.12-slim
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHONUNBUFFERED: 1
+      PATH: "/root/.cargo/bin:$PATH"
+    command: >
+      sh -c "curl -LsSf https://astral.sh/uv/install.sh | sh &&
+             uv pip install -r requirements.txt &&
+             fastapi run main.py --host 0.0.0.0 --port 8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  seed:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - ./seed.py:/seed.py
+    environment:
+      PYTHONUNBUFFERED: 1
+      PATH: "/root/.cargo/bin:$PATH"
+    command: >
+      sh -c "curl -LsSf https://astral.sh/uv/install.sh | sh &&
+             uv pip install -r requirements.txt &&
+             python /seed.py"
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - seed
+
+volumes:
+  postgres_data:
