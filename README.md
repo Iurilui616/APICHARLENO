@@ -8,4 +8,8 @@ API FastAPI completa com autenticação JWT e API Key, documentação automátic
 
 ```bash
 cd MyAPI
+
 uv sync
+
+Rodar normalmente (sem seed): docker-compose up
+Rodar com seed: docker-compose --profile seed up
