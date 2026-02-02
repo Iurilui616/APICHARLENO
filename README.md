@@ -11,5 +11,8 @@ cd MyAPI
 
 uv sync
 
+Docker
+
 Rodar normalmente (sem seed): docker-compose up
 Rodar com seed: docker-compose --profile seed up
+
